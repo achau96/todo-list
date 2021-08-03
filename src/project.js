@@ -1,12 +1,25 @@
+import Todo from './todo'
+import {projects} from './data'
 const Project = function() {
-let projects = [{'title':'default'}];
+
 const add = function(){
 const newProj = prompt('enter new project name');
-let obj = {'title':newProj};
-projects.push(obj);
+projects.push({'title':newProj,'notes':[]});
+console.log(projects);
 return newProj;
 }
-return{add,projects};
+
+const addTodo = function(projName,title,description,dueDate,priority){
+projects.forEach((ele,index) => {
+  console.log(ele.title);
+if(ele.title == projName){
+  projects[index].notes.push((Todo(title,description,dueDate,priority)));
+  console.log(projects);
+}
+})
+}
+
+return{add,addTodo};
 }
 
 export default Project

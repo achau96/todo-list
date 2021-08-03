@@ -1,6 +1,1 @@
-const Data = function(){
-  const projects = [];
-  return projects;
-}
-
-export default Data;
+export const projects = [{'title':'DEFAULT','notes':[]}];
