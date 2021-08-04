@@ -1,4 +1,8 @@
 import Project from "./project";
+import {projects} from './data'
+//not best practice but I wasn't sure how to implement state
+//for checking if input for project was active
+let state = false;
 
 const CREATE = function(type,className,text){
   const create = document.createElement(type);
@@ -13,15 +17,51 @@ const addSelector = function(proj){
     proj.classList.add('select');
 }
 
-const sendTodo = function(form,proj){
+const createTable = function (){
+  const table = CREATE('tr','table','');
+  const title = CREATE('th','solid','Title');
+  title.style.width = '25vw';
+  const dueDate = CREATE('th','solid','Due Date');
+  dueDate.style.width = '15vw';
+  const priority = CREATE('th','solid','Priority');
+  priority.style.width = '10vw';
+  const done = CREATE('th','solid','Done');
+  done.style.width = '8vw';
+  table.appendChild(title);
+  table.appendChild(dueDate);
+  table.appendChild(priority);
+  table.appendChild(done);
+  return table;
+}
+
+const createTask = function(head,date,priorityValue){
+  const task = CREATE('tr','table','');
+  const title = CREATE('th','task',`${head}`);
+  title.style.width = '25vw';
+  const dueDate = CREATE('th','task',`${date}`);
+  dueDate.style.width = '15vw';
+  const priority = CREATE('th','task',`${priorityValue}`);
+  priority.style.width = '10vw';
+  const done = CREATE('th','task','Done');
+  done.style.width = '8vw';
+  done.classList.add('done');
+  task.appendChild(title);
+  task.appendChild(dueDate);
+  task.appendChild(priority);
+  task.appendChild(done);
+  return task;
+}
+
+const sendTodo = function(form,proj,todoHolder){
   const title = form.elements[0].value;
   const description = form.elements[1].value;
   const dueDate = form.elements[2].value;
   const priority = form.elements[3].value;
+  todoHolder.appendChild(createTask(title,dueDate,priority));
   Project().addTodo(proj,title,description,dueDate,priority);
 }
 
-const addToProject = function(title) {
+const addToProject = function(title,todoHolder) {
   const container = CREATE('div','container','');
   const form = document.createElement('form');
   form.classList.add('popup');
@@ -68,13 +108,15 @@ const addToProject = function(title) {
   //can press enter
   todoTitle.addEventListener('keydown',function(e){
     if(e.keyCode == 13){
-      sendTodo(form,title);
+      sendTodo(form,title,todoHolder);
+      form.reset();
       e.preventDefault();
     }
   })
 
   submit.addEventListener('click',function(e){
-    sendTodo(form,title);
+    sendTodo(form,title,todoHolder);
+    form.reset();
     e.preventDefault();
     e.stopPropagation();
   });
@@ -88,16 +130,32 @@ const addToProject = function(title) {
   }
 }
 
-const updateProj = function(e){
-  addSelector(e.target);
-  document.querySelectorAll('.todo').forEach(e => e.remove());
+
+
+const updateProj = function(proj){
+  addSelector(proj.target);
+  document.querySelectorAll('.todoHolder').forEach(e => e.remove());
+  const todoHolder = CREATE('div','todoHolder','');
   const addTodo = CREATE('button','add','Add Task');
   addTodo.classList.add('todo');
-  addTodo.addEventListener('click',()=>addToProject(e.target.textContent));
-  document.body.appendChild(addTodo);
+  const table = createTable();
+  todoHolder.appendChild(addTodo);
+  todoHolder.appendChild(table);
+
+  const test = projects.filter(project => project.title == proj.target.textContent);
+  for(let i=0;i<test[0].notes.length;i++){
+    todoHolder.appendChild(createTask(test[0].notes[i].title,test[0].notes[i].dueDate,test[0].notes[i].priority));
+  }
+
+  addTodo.addEventListener('click',function(e){
+    addToProject(proj.target.textContent,todoHolder);
+  });
+
+  document.body.appendChild(todoHolder);
 }
 
 const addProject = function(list){
+  state = true;
   const input = CREATE('input','input','');
   input.setAttribute('type','text');
   const manage = CREATE('div','manage','')
@@ -110,15 +168,27 @@ const addProject = function(list){
   cancel.addEventListener('click',function(e){
     list.removeChild(manage);
     list.removeChild(input);
+    state = false;
   })
   add.addEventListener('click',function(e){
-    console.log(input.value);
+    const filter = projects.filter(proj => proj.title == input.value);
+    if(filter.length > 0){
+      alert('Can not have same project name!')
+    }
+    else if(input.value.length >= 3){
+      const newProj = Project().add(input.value);
+      const projName = CREATE('a','new',newProj);
+        projName.href = `#${newProj}`;
+        projName.addEventListener('click',updateProj);
+        list.removeChild(manage);
+        list.removeChild(input);
+        list.appendChild(projName);
+        state = false;
+    }
+    else {
+      alert('Minimum length of project name must be 3!');
+    }
   })
-// const newProj = Project().add();
-//   const projName = CREATE('a','new',newProj);
-//   projName.href = `#${newProj}`;
-//   projName.addEventListener('click',updateProj);
-//   list.appendChild(projName);
 }
 
 const Projects = function(){
@@ -129,15 +199,23 @@ const Projects = function(){
   const defaultTab = CREATE('a','new','DEFAULT');
   defaultTab.href = '#default';
   addSelector(defaultTab);
+  const todoHolder = CREATE('div','todoHolder','');
   const addTodo = CREATE('button','add','Add Task');
   addTodo.classList.add('todo');
+  const table = createTable();
+  todoHolder.appendChild(addTodo);
+  todoHolder.appendChild(table);
   addTodo.addEventListener('click',()=>addToProject(defaultTab.textContent));
-  document.body.appendChild(addTodo);
+  document.body.appendChild(todoHolder);
   defaultTab.addEventListener('click',updateProj);
 
   const addProj = CREATE('button','add','Add Project')
   list.appendChild(defaultTab);
-  addProj.addEventListener('click',()=>addProject(list));
+  addProj.addEventListener('click',function(e){
+    if(state == false){
+    addProject(list);
+    }
+  });
   projects.appendChild(list);
   projects.appendChild(addProj);
   return projects;

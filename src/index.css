@@ -100,6 +100,7 @@ body {
 }
 
 .add {
+  text-align: center;
   margin-top:3vh;
   margin-bottom: 2vh;
   width: 10vw;
@@ -116,10 +117,31 @@ body {
   transform: scale(1.05);
 }
 
+.todoHolder{
+  margin-left: 28vw;
+  margin-top: 15vh;
+}
+
 .todo {
-  display: inline;
-margin-top: 18vh;
-margin-left: 50vw;
+  margin-left: 20vw;
+}
+
+.table {
+position: relative;
+border: 1px solid #ddd;
+margin-left: auto;
+margin-right: auto;
+}
+
+.solid {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background-color: gray;
+  color: white;
+}
+
+th, tr, td {
+  border: 1px solid #ddd;
 }
 
 .container {
