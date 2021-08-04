@@ -34,7 +34,52 @@ const createTable = function (){
   return table;
 }
 
-const createTask = function(head,date,priorityValue){
+//form for updating
+const createForm = function(){
+  const form = document.createElement('form');
+  form.classList.add('popup');
+  form.setAttribute('method','post');
+  form.setAttribute('action','/submit');
+
+  const header = CREATE('h2','noteHeader','Todo is all up to you!');
+  form.appendChild(header);
+
+  const todoTitle = CREATE('input','formStyle','');
+  todoTitle.setAttribute('placeholder','title');
+
+  const text = document.createElement('textarea');
+  text.classList.add('formStyle');
+  text.placeholder = 'Enter your description here...';
+
+  const dateContainer = CREATE('div','formStyle','Due Date: ');
+
+  const dueDate = document.createElement('input');
+  dueDate.setAttribute('type','date');
+  dateContainer.appendChild(dueDate);
+
+  const priorityContainer = CREATE('div','formStyle','Priority: ');
+  const priority = document.createElement('select');
+  const arr = ['1','2','3','4','5'];
+  for(let i=0;i<arr.length;i++){
+    const option = document.createElement('option');
+    option.value=arr[i];
+    option.textContent=arr[i];
+    priority.appendChild(option);
+  }
+  priorityContainer.appendChild(priority);
+  const submit = CREATE('submit','add','Add a Todo');
+  submit.value = 'Update';
+
+  form.appendChild(todoTitle);
+  form.appendChild(text);
+  form.appendChild(dateContainer);
+  form.appendChild(priorityContainer);
+  form.appendChild(submit);
+  return form;
+}
+
+//create task
+const createTask = function(head,date,priorityValue,projectTitle){
   const task = CREATE('tr','table','');
   const title = CREATE('th','task',`${head}`);
   title.style.width = '25vw';
@@ -49,18 +94,37 @@ const createTask = function(head,date,priorityValue){
   task.appendChild(dueDate);
   task.appendChild(priority);
   task.appendChild(done);
+
+  title.addEventListener('click',function(e){
+    console.log(projectTitle);
+  });
+
+  done.addEventListener('click',function(e){
+    projects.forEach(proj => {
+      if(proj.title == projectTitle){
+        proj.notes.forEach((note,index,obj) => {
+          if(note.title == head){
+            obj.splice(index,1);
+          }
+        })
+      }
+    })
+    task.remove();
+  })
   return task;
 }
 
+//send new task to data file
 const sendTodo = function(form,proj,todoHolder){
   const title = form.elements[0].value;
   const description = form.elements[1].value;
   const dueDate = form.elements[2].value;
   const priority = form.elements[3].value;
-  todoHolder.appendChild(createTask(title,dueDate,priority));
+  todoHolder.appendChild(createTask(title,dueDate,priority,proj));
   Project().addTodo(proj,title,description,dueDate,priority);
 }
 
+//creates new form for adding tasks
 const addToProject = function(title,todoHolder) {
   const container = CREATE('div','container','');
   const form = document.createElement('form');
@@ -108,17 +172,54 @@ const addToProject = function(title,todoHolder) {
   //can press enter
   todoTitle.addEventListener('keydown',function(e){
     if(e.keyCode == 13){
+      let status = 0;
+      e.preventDefault();
+      e.stopPropagation();
+      projects.forEach(proj => {
+        if(proj.title == title){
+          proj.notes.forEach((note) => {
+            if(note.title == form.elements[0].value){
+              status = 1;
+            }
+          })
+        }
+      })
+      if(status == 1){
+        alert('Title already exists!')
+      }
+      else if(form.elements[0].value.length<3){
+        alert('Please enter a longer title.');
+      }
+      else{
       sendTodo(form,title,todoHolder);
       form.reset();
-      e.preventDefault();
+      }
     }
   })
 
   submit.addEventListener('click',function(e){
-    sendTodo(form,title,todoHolder);
-    form.reset();
+    let status = 0;
     e.preventDefault();
     e.stopPropagation();
+    projects.forEach(proj => {
+      if(proj.title == title){
+        proj.notes.forEach((note) => {
+          if(note.title == form.elements[0].value){
+            status = 1;
+          }
+        })
+      }
+    })
+    if(status == 1){
+      alert('Title already exists!')
+    }
+    else if(form.elements[0].value.length<3){
+      alert('Please enter a longer title.');
+    }
+    else{
+    sendTodo(form,title,todoHolder);
+    form.reset();
+    }
   });
 
 
@@ -144,7 +245,7 @@ const updateProj = function(proj){
 
   const test = projects.filter(project => project.title == proj.target.textContent);
   for(let i=0;i<test[0].notes.length;i++){
-    todoHolder.appendChild(createTask(test[0].notes[i].title,test[0].notes[i].dueDate,test[0].notes[i].priority));
+    todoHolder.appendChild(createTask(test[0].notes[i].title,test[0].notes[i].dueDate,test[0].notes[i].priority,proj.target.textContent));
   }
 
   addTodo.addEventListener('click',function(e){
@@ -205,7 +306,9 @@ const Projects = function(){
   const table = createTable();
   todoHolder.appendChild(addTodo);
   todoHolder.appendChild(table);
-  addTodo.addEventListener('click',()=>addToProject(defaultTab.textContent));
+  addTodo.addEventListener('click',function(e){
+    addToProject(defaultTab.textContent,todoHolder);
+  });
   document.body.appendChild(todoHolder);
   defaultTab.addEventListener('click',updateProj);
 

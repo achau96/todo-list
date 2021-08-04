@@ -144,6 +144,14 @@ th, tr, td {
   border: 1px solid #ddd;
 }
 
+.done {
+  background-color: tomato;
+}
+
+.done:hover{
+  cursor: pointer;
+}
+
 .container {
   display: block;
   position: fixed;
