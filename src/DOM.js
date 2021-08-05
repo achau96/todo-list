@@ -4,6 +4,7 @@ import {projects} from './data'
 //for checking if input for project was active
 let state = false;
 
+
 const CREATE = function(type,className,text){
   const create = document.createElement(type);
   create.classList.add(className);
@@ -81,7 +82,6 @@ const createForm = function(head,description,date,priorityValue,projectTitle){
     e.stopPropagation();
     const select = document.querySelector('.select');
     const title = form.elements[0].value;
-    console.log('projTitle: ' +projectTitle)
     const description = form.elements[1].value;
     const dueDate = form.elements[2].value;
     const priority = form.elements[3].value;
@@ -95,7 +95,6 @@ const createForm = function(head,description,date,priorityValue,projectTitle){
     e.stopPropagation();
     const select = document.querySelector('.select');
     const title = form.elements[0].value;
-    console.log('projTitle: ' +projectTitle)
     const description = form.elements[1].value;
     const dueDate = form.elements[2].value;
     const priority = form.elements[3].value;
@@ -129,7 +128,6 @@ const createTask = function(head,date,priorityValue,projectTitle,description,tod
   task.appendChild(dueDate);
   task.appendChild(priority);
   task.appendChild(done);
-  console.log(description);
   title.addEventListener('click',function(e){
     //add edit form
     const container = createForm(head,description,date,priorityValue,projectTitle,todoHolder)
@@ -235,6 +233,7 @@ const addToProject = function(title,todoHolder) {
       else{
       sendTodo(form,title,todoHolder);
       form.reset();
+      localStorage.setItem('projects',JSON.stringify(projects));
       }
     }
   })
@@ -261,6 +260,7 @@ const addToProject = function(title,todoHolder) {
     else{
     sendTodo(form,title,todoHolder);
     form.reset();
+    localStorage.setItem('projects',JSON.stringify(projects));
     }
   });
 
@@ -289,7 +289,7 @@ const updateNote = function (proj){
   addTodo.addEventListener('click',function(e){
     addToProject(proj.textContent,todoHolder);
   });
-
+  localStorage.setItem('projects',JSON.stringify(projects));
   document.body.appendChild(todoHolder);
 }
 
@@ -311,7 +311,7 @@ const updateProj = function(proj){
   addTodo.addEventListener('click',function(e){
     addToProject(proj.target.textContent,todoHolder);
   });
-
+  localStorage.setItem('projects',JSON.stringify(projects));
   document.body.appendChild(todoHolder);
 }
 
@@ -354,30 +354,58 @@ const addProject = function(list){
   })
 }
 
+const loadedProject = function(title,index){
+  const tab = CREATE('a','new',`${title}`);
+  tab.href = `#${title}`;
+  tab.addEventListener('click',updateProj);
+  return tab;
+}
+
+//check for local cache
+function lsTest(){
+  var test = 'test';
+  try {
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      return true;
+  } catch(e) {
+      return false;
+  }
+}
+
 const Projects = function(){
   const project = CREATE('div', 'project', 'PROJECTS');
   const list = CREATE('div','list','');
   const remButton = CREATE('button','add','Remove');
-  //default state before starting the add project
-  const defaultTab = CREATE('a','new','DEFAULT');
-  defaultTab.href = '#default';
-  addSelector(defaultTab);
-  const todoHolder = CREATE('div','todoHolder','');
-  const addTodo = CREATE('button','add','Add Task');
-  addTodo.classList.add('todo');
-  const table = createTable();
-  todoHolder.appendChild(addTodo);
-  todoHolder.appendChild(table);
+  if(lsTest() === true){
+    if(localStorage.length!= 0){
+      const loadedProjects = JSON.parse(localStorage.getItem('projects'));
+      console.log(loadedProjects);
+      projects.splice(0,projects.length, ...loadedProjects);
+      loadedProjects.forEach((proj,i) => list.appendChild(loadedProject(proj.title,i)));
+    }
+    else{
+      //default state before starting the add project
+      const defaultTab = CREATE('a','new','DEFAULT');
+      defaultTab.href = '#default';
+      addSelector(defaultTab);
+      const todoHolder = CREATE('div','todoHolder','');
+      const addTodo = CREATE('button','add','Add Task');
+      addTodo.classList.add('todo');
+      const table = createTable();
+      todoHolder.appendChild(addTodo);
+      todoHolder.appendChild(table);
 
-  addTodo.addEventListener('click',function(e){
-    addToProject(defaultTab.textContent,todoHolder);
-  });
-  document.body.appendChild(todoHolder);
-  defaultTab.addEventListener('click',updateProj);
+      addTodo.addEventListener('click',function(e){
+        addToProject(defaultTab.textContent,todoHolder);
+      });
+      document.body.appendChild(todoHolder);
+      defaultTab.addEventListener('click',updateProj);
+      list.appendChild(defaultTab);
+    }
+  }
 
   const addProj = CREATE('button','add','Add');
-
-  list.appendChild(defaultTab);
 
   remButton.addEventListener('click',function(e){
     const selected = document.querySelector('.select');
@@ -385,9 +413,9 @@ const Projects = function(){
       if(proj.title == selected.textContent){
         obj.splice(index,1);
         list.removeChild(selected);
+        localStorage.setItem('projects',JSON.stringify(projects));
       }
     })
-    console.log(selected);
   })
 
   addProj.addEventListener('click',function(e){
