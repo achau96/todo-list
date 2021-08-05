@@ -1,5 +1,6 @@
 import Project from "./project";
-import {projects} from './data'
+import {projects} from './data';
+import {compareAsc,format,parseISO} from 'date-fns';
 //not best practice but I wasn't sure how to implement state
 //for checking if input for project was active
 let state = false;
@@ -117,7 +118,7 @@ const createTask = function(head,date,priorityValue,projectTitle,description,tod
   const title = CREATE('td','task',`${head}`);
   title.style.width = '25vw';
   title.classList.add('todoTask');
-  const dueDate = CREATE('td','task',`${date}`);
+  const dueDate = CREATE('td','task',`${format(parseISO(date),'EEE MMM dd yyyy')}`);
   dueDate.style.width = '15vw';
   const priority = CREATE('td','task',`${priorityValue}`);
   priority.style.width = '10vw';
