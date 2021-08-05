@@ -1,5 +1,6 @@
 # todo-list
 
+If it doesn't work, try clearing localStorage in command. Sorry!
 Edit the todo by clicking on the title of the note!
 
 Learning Objectives
