@@ -1,5 +1,7 @@
 # todo-list
 
+Edit the todo by clicking on the title of the note!
+
 Learning Objectives
 1. DOM maniuplation
 2. localStorage
