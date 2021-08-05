@@ -35,7 +35,8 @@ const createTable = function (){
 }
 
 //form for updating
-const createForm = function(){
+const createForm = function(head,description,date,priorityValue,projectTitle){
+  const container = CREATE('div','container','');
   const form = document.createElement('form');
   form.classList.add('popup');
   form.setAttribute('method','post');
@@ -45,16 +46,17 @@ const createForm = function(){
   form.appendChild(header);
 
   const todoTitle = CREATE('input','formStyle','');
-  todoTitle.setAttribute('placeholder','title');
+  todoTitle.value =`${head}`;
 
   const text = document.createElement('textarea');
   text.classList.add('formStyle');
-  text.placeholder = 'Enter your description here...';
+  text.value = `${description}`;
 
   const dateContainer = CREATE('div','formStyle','Due Date: ');
 
   const dueDate = document.createElement('input');
   dueDate.setAttribute('type','date');
+  dueDate.value = date;
   dateContainer.appendChild(dueDate);
 
   const priorityContainer = CREATE('div','formStyle','Priority: ');
@@ -62,41 +64,81 @@ const createForm = function(){
   const arr = ['1','2','3','4','5'];
   for(let i=0;i<arr.length;i++){
     const option = document.createElement('option');
+    if(arr[i] == priorityValue){
+      option.setAttribute('selected','selected');
+    }
     option.value=arr[i];
     option.textContent=arr[i];
     priority.appendChild(option);
   }
   priorityContainer.appendChild(priority);
-  const submit = CREATE('submit','add','Add a Todo');
+  const submit = CREATE('submit','add','Update');
   submit.value = 'Update';
 
+  todoTitle.addEventListener('keydown',function(e){
+    if(e.keyCode == 13){
+      e.preventDefault();
+    e.stopPropagation();
+    const select = document.querySelector('.select');
+    const title = form.elements[0].value;
+    console.log('projTitle: ' +projectTitle)
+    const description = form.elements[1].value;
+    const dueDate = form.elements[2].value;
+    const priority = form.elements[3].value;
+    Project().updateTodo(projectTitle,head,title,description,dueDate,priority);
+    updateNote(select);
+    container.remove();
+    }})
+
+  submit.addEventListener('click',function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    const select = document.querySelector('.select');
+    const title = form.elements[0].value;
+    console.log('projTitle: ' +projectTitle)
+    const description = form.elements[1].value;
+    const dueDate = form.elements[2].value;
+    const priority = form.elements[3].value;
+    Project().updateTodo(projectTitle,head,title,description,dueDate,priority);
+    updateNote(select);
+    container.remove();
+  })
   form.appendChild(todoTitle);
   form.appendChild(text);
   form.appendChild(dateContainer);
   form.appendChild(priorityContainer);
   form.appendChild(submit);
-  return form;
+  container.appendChild(form);
+  return container;
 }
 
 //create task
-const createTask = function(head,date,priorityValue,projectTitle){
+const createTask = function(head,date,priorityValue,projectTitle,description,todoHolder){
   const task = CREATE('tr','table','');
-  const title = CREATE('th','task',`${head}`);
+  const title = CREATE('td','task',`${head}`);
   title.style.width = '25vw';
-  const dueDate = CREATE('th','task',`${date}`);
+  title.classList.add('todoTask');
+  const dueDate = CREATE('td','task',`${date}`);
   dueDate.style.width = '15vw';
-  const priority = CREATE('th','task',`${priorityValue}`);
+  const priority = CREATE('td','task',`${priorityValue}`);
   priority.style.width = '10vw';
-  const done = CREATE('th','task','Done');
+  const done = CREATE('td','task','Done');
   done.style.width = '8vw';
   done.classList.add('done');
   task.appendChild(title);
   task.appendChild(dueDate);
   task.appendChild(priority);
   task.appendChild(done);
-
+  console.log(description);
   title.addEventListener('click',function(e){
-    console.log(projectTitle);
+    //add edit form
+    const container = createForm(head,description,date,priorityValue,projectTitle,todoHolder)
+    document.body.appendChild(container);
+    document.onclick = function(e) {
+      if(e.target == container){
+        container.style.display = 'none';
+      }
+    }
   });
 
   done.addEventListener('click',function(e){
@@ -120,7 +162,7 @@ const sendTodo = function(form,proj,todoHolder){
   const description = form.elements[1].value;
   const dueDate = form.elements[2].value;
   const priority = form.elements[3].value;
-  todoHolder.appendChild(createTask(title,dueDate,priority,proj));
+  todoHolder.appendChild(createTask(title,dueDate,priority,proj,description,todoHolder));
   Project().addTodo(proj,title,description,dueDate,priority);
 }
 
@@ -222,7 +264,6 @@ const addToProject = function(title,todoHolder) {
     }
   });
 
-
   document.body.appendChild(container);
   document.onclick = function(e) {
     if(e.target == container){
@@ -231,7 +272,26 @@ const addToProject = function(title,todoHolder) {
   }
 }
 
+const updateNote = function (proj){
+  document.querySelectorAll('.todoHolder').forEach(e => e.remove());
+  const todoHolder = CREATE('div','todoHolder','');
+  const addTodo = CREATE('button','add','Add Task');
+  addTodo.classList.add('todo');
+  const table = createTable();
+  todoHolder.appendChild(addTodo);
+  todoHolder.appendChild(table);
 
+  const test = projects.filter(project => project.title == proj.textContent);
+  for(let i=0;i<test[0].notes.length;i++){
+    todoHolder.appendChild(createTask(test[0].notes[i].title,test[0].notes[i].dueDate,test[0].notes[i].priority,proj.textContent,test[0].notes[i].description,todoHolder));
+  }
+
+  addTodo.addEventListener('click',function(e){
+    addToProject(proj.textContent,todoHolder);
+  });
+
+  document.body.appendChild(todoHolder);
+}
 
 const updateProj = function(proj){
   addSelector(proj.target);
@@ -245,7 +305,7 @@ const updateProj = function(proj){
 
   const test = projects.filter(project => project.title == proj.target.textContent);
   for(let i=0;i<test[0].notes.length;i++){
-    todoHolder.appendChild(createTask(test[0].notes[i].title,test[0].notes[i].dueDate,test[0].notes[i].priority,proj.target.textContent));
+    todoHolder.appendChild(createTask(test[0].notes[i].title,test[0].notes[i].dueDate,test[0].notes[i].priority,proj.target.textContent,test[0].notes[i].description,todoHolder));
   }
 
   addTodo.addEventListener('click',function(e){
@@ -271,6 +331,8 @@ const addProject = function(list){
     list.removeChild(input);
     state = false;
   })
+
+
   add.addEventListener('click',function(e){
     const filter = projects.filter(proj => proj.title == input.value);
     if(filter.length > 0){
@@ -293,9 +355,9 @@ const addProject = function(list){
 }
 
 const Projects = function(){
-  const projects = CREATE('div', 'project', 'PROJECTS');
+  const project = CREATE('div', 'project', 'PROJECTS');
   const list = CREATE('div','list','');
-
+  const remButton = CREATE('button','add','Remove');
   //default state before starting the add project
   const defaultTab = CREATE('a','new','DEFAULT');
   defaultTab.href = '#default';
@@ -306,22 +368,38 @@ const Projects = function(){
   const table = createTable();
   todoHolder.appendChild(addTodo);
   todoHolder.appendChild(table);
+
   addTodo.addEventListener('click',function(e){
     addToProject(defaultTab.textContent,todoHolder);
   });
   document.body.appendChild(todoHolder);
   defaultTab.addEventListener('click',updateProj);
 
-  const addProj = CREATE('button','add','Add Project')
+  const addProj = CREATE('button','add','Add');
+
   list.appendChild(defaultTab);
+
+  remButton.addEventListener('click',function(e){
+    const selected = document.querySelector('.select');
+    projects.forEach((proj,index,obj) => {
+      if(proj.title == selected.textContent){
+        obj.splice(index,1);
+        list.removeChild(selected);
+      }
+    })
+    console.log(selected);
+  })
+
   addProj.addEventListener('click',function(e){
     if(state == false){
     addProject(list);
     }
   });
-  projects.appendChild(list);
-  projects.appendChild(addProj);
-  return projects;
+
+  project.appendChild(list);
+  project.appendChild(addProj);
+  project.appendChild(remButton);
+  return project;
 }
 
 const DOM = function(){

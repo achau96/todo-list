@@ -58,6 +58,7 @@ body {
   width:80%;
   text-align: left;
 }
+
 /*adding a new project*/
 .input {
   width:80%;
@@ -101,12 +102,14 @@ body {
 
 .add {
   text-align: center;
-  margin-top:3vh;
-  margin-bottom: 2vh;
-  width: 10vw;
+  margin-top:15px;
+  margin-bottom: 10px;
+  margin-left: 4px;
+  margin-right: 4px;
+  width: 80px;
   background-color: rgb(53, 34, 34);
   color:white;
-  padding: 10px 5px 10px 5px;
+  padding: 8px 5px 8px 5px;
   border-radius: 25px;
   font-size: 2vh;
   transition: .4s ease-in-out;
@@ -144,12 +147,26 @@ th, tr, td {
   border: 1px solid #ddd;
 }
 
+.task {
+  padding:5px;
+  margin-left: 1vw;
+  background-color: whitesmoke;
+}
+
+.task:hover {
+  background-color: rgb(216, 189, 189);
+}
+.todoTask:hover{
+  cursor: pointer;
+}
+
 .done {
   background-color: tomato;
 }
 
 .done:hover{
   cursor: pointer;
+  background-color: tomato;
 }
 
 .container {
